@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warme en Koude Kleuren Trainer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --accent-blue: #0f172a;
+            --border-radius: 20px;
+            --shadow: 0 4px 15px rgba(0,0,0,0.05);
+            --correct: #22c55e;
+            --wrong: #ef4444;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container { max-width: 900px; width: 100%; padding-bottom: 100px; }
+
+        .header-card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .help-panel {
+            display: none;
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+            font-size: 14px;
+            line-height: 1.6;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-label { font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { font-size: 20px; font-weight: 600; margin-top: 4px; }
+
+        .plant-slots { display: flex; gap: 6px; margin-top: 8px; }
+        .slot {
+            width: 34px; height: 34px; background: #f1f5f9;
+            border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px;
+            transition: all 0.3s ease;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .color-card {
+            background: var(--card-bg);
+            padding: 12px;
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: transform 0.2s, border 0.2s;
+            border: 3px solid transparent;
+        }
+
+        .color-card.selected { border-color: #3b82f6; transform: translateY(-3px); }
+
+        .color-swatch { height: 100px; border-radius: 12px; margin-bottom: 10px; border: 1px solid rgba(0,0,0,0.05); }
+        .color-name { font-weight: 600; display: block; font-size: 15px; }
+        .color-hex { font-size: 12px; color: #94a3b8; font-family: monospace; }
+
+        .controls {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        button {
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: inherit;
+        }
+
+        .btn-primary { background: var(--accent-blue); color: white; }
+        .btn-help { background: #e2e8f0; color: #475569; }
+        .btn-reset { color: #ef4444; background: none; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .modal-box {
+            background: white;
+            padding: 30px;
+            border-radius: 24px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            animation: pop 0.3s ease-out;
+        }
+        .feedback-list { text-align: left; margin: 20px 0; max-height: 350px; overflow-y: auto; padding-right: 10px; }
+        .fb-item { margin-bottom: 12px; font-size: 14px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; line-height: 1.4; }
+
+        @keyframes pop { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @media (max-width: 768px) { .color-grid { grid-template-columns: repeat(2, 1fr); } .stats-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1 style="margin:0; font-size: 24px;">Warme en Koude Kleuren</h1>
+            <button class="btn-help" onclick="toggleHelp()">💡 Speluitleg & Tips</button>
+        </div>
+        <div id="helpPanel" class="help-panel">
+            <strong>Didactische tips:</strong><br>
+            • <b>Warm:</b> Hebben een basis van rood, oranje of geel. Denk aan vuur of de middagzon.<br>
+            • <b>Koud:</b> Hebben een basis van blauw of koel groen. Denk aan water, ijs en de vroege ochtend.<br>
+            • <b>Tussenkleuren:</b> Kijk naar de ondertoon. Een groen met veel geel is warm, maar een groen met veel blauw is koud.
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Totale Score</div><div id="score" class="stat-value">0</div></div>
+        <div class="stat-card">
+            <div class="stat-label">Plantjes voor Medaille (Streak: 5)</div>
+            <div class="plant-slots">
+                <div class="slot" id="slot0"></div>
+                <div class="slot" id="slot1"></div>
+                <div class="slot" id="slot2"></div>
+                <div class="slot" id="slot3"></div>
+                <div class="slot" id="slot4"></div>
+            </div>
+        </div>
+        <div class="stat-card"><div class="stat-label">Nauwkeurigheid</div><div id="perc" class="stat-value">0%</div></div>
+    </div>
+
+    <div class="color-grid" id="grid"></div>
+
+    <div class="controls">
+        <div id="instruction" style="font-weight: 600; font-size: 18px; color: #334155;">Laden...</div>
+        <div>
+            <button class="btn-primary" onclick="checkSelection()">Controleer</button>
+            <button class="btn-reset" onclick="resetGame()">Reset</button>
+        </div>
+    </div>
+</div>
+
+<!-- Feedback Modal -->
+<div class="modal-overlay" id="feedbackModal">
+    <div class="modal-box">
+        <h2 id="fbTitle" style="margin-top:0; font-size: 22px;">Resultaat</h2>
+        <div class="feedback-list" id="fbList"></div>
+        <button class="btn-primary" style="width:100%" onclick="closeFeedback()">Volgende ronde</button>
+    </div>
+</div>
+
+<!-- Medal Modal -->
+<div class="modal-overlay" id="medalModal">
+    <div class="modal-box" style="text-align: center;">
+        <div style="font-size: 80px; margin-bottom: 10px;">🏅</div>
+        <h2 style="font-size: 24px;">Expert in Kleurtheorie!</h2>
+        <p>Je hebt een streak van 5 behaald en alle plantjes laten groeien. Je bent nu een echte kenner van warme en koude kleuren!</p>
+        <button class="btn-primary" style="width:100%" onclick="closeMedal()">Nog een keer</button>
+    </div>
+</div>
+
+<script>
+    const colorDatabase = [
+        // WARME KLEUREN
+        { name: "Vuurrood", hex: "#e11d48", type: "warm", reason: "Pure rode pigmenten roepen associaties op met hitte." },
+        { name: "Zonlicht Geel", hex: "#fde047", type: "warm", reason: "Geel is de lichtste warme kleur, direct gelinkt aan zonlicht." },
+        { name: "Okergeel", hex: "#ca8a04", type: "warm", reason: "De aardse, gele ondertoon straalt natuurlijke warmte uit." },
+        { name: "Helder Oranje", hex: "#ea580c", type: "warm", reason: "Een krachtige mix van rood en geel, de essentie van warmte." },
+        { name: "Terracotta", hex: "#e2725b", type: "warm", reason: "Een warme aardetint vol rode en oranje ondertonen." },
+        { name: "Amber", hex: "#ffbf00", type: "warm", reason: "Deze diepe goudkleur zit vol warme energie." },
+        { name: "Warm Groen", hex: "#a3e635", type: "warm", reason: "Dit groen bevat zoveel geel dat het aan de warme kant staat." },
+        { name: "Framboos", hex: "#be123c", type: "warm", reason: "Een diepe roze-rood tint met een warme basis." },
+        
+        // KOUDE KLEUREN
+        { name: "Ijsblauw", hex: "#7dd3fc", type: "koud", reason: "Lichtblauw doet direct denken aan ijs en bevroren lucht." },
+        { name: "Oceaanblauw", hex: "#0369a1", type: "koud", reason: "Diepblauw is het ankerpunt van de koude kleuren." },
+        { name: "Dennegroen", hex: "#14532d", type: "koud", reason: "Dit diepe groen bevat veel blauw, wat het koud en rustig maakt." },
+        { name: "Mintfris", hex: "#6ee7b7", type: "koud", reason: "Een frisse kleur met een duidelijke blauw-groene basis." },
+        { name: "Petrol", hex: "#0e7490", type: "koud", reason: "Ondanks de diepte is de ondertoon blauw, dus koud." },
+        { name: "Lavendel", hex: "#a5b4fc", type: "koud", reason: "Dit violet neigt naar blauw, wat het een koel karakter geeft." },
+        { name: "Donkerpaars", hex: "#581c87", type: "koud", reason: "De blauwe pigmenten overheersen hier de rode pigmenten." },
+        { name: "Smaragd", hex: "#10b981", type: "koud", reason: "Dit heldere groen zit aan de koele kant van de kleurencirkel." },
+        { name: "Koel Grijs", hex: "#94a3b8", type: "koud", reason: "Dit grijs heeft een blauwe zweem, waardoor het koel oogt." },
+        { name: "Indigo", hex: "#4338ca", type: "koud", reason: "Een zeer diepe blauwtint die ver van de warmte af staat." }
+    ];
+
+    let score = 0, rounds = 0, plants = 0;
+    let currentTask = "", roundColors = [], selected = new Set();
+
+    function initRound() {
+        selected.clear();
+        currentTask = Math.random() > 0.5 ? "warm" : "koud";
+        document.getElementById('instruction').innerText = `Selecteer alle ${currentTask}e kleuren`;
+
+        const correctOnes = shuffle(colorDatabase.filter(c => c.type === currentTask));
+        const wrongOnes = shuffle(colorDatabase.filter(c => c.type !== currentTask));
+        
+        // Regel: altijd tussen 2 en 5 correcte antwoorden
+        const numCorrect = Math.floor(Math.random() * 4) + 2; 
+        
+        roundColors = shuffle([
+            ...correctOnes.slice(0, numCorrect), 
+            ...wrongOnes.slice(0, 8 - numCorrect)
+        ]);
+        
+        render();
+    }
+
+    function render() {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+        roundColors.forEach((c, i) => {
+            const card = document.createElement('div');
+            card.className = `color-card ${selected.has(i) ? 'selected' : ''}`;
+            card.onclick = () => {
+                selected.has(i) ? selected.delete(i) : selected.add(i);
+                render();
+            };
+            card.innerHTML = `
+                <div class="color-swatch" style="background:${c.hex}"></div>
+                <span class="color-name">${c.name}</span>
+                <span class="color-hex">${c.hex}</span>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function checkSelection() {
+        const correctIndices = roundColors.map((c, i) => c.type === currentTask ? i : null).filter(i => i !== null);
+        const isWin = selected.size === correctIndices.length && [...selected].every(i => correctIndices.includes(i));
+
+        if (isWin) {
+            score++;
+            plants = Math.min(5, plants + 1);
+        } else {
+            plants = Math.max(0, plants - 1);
+        }
+        rounds++;
+        
+        showFeedbackModal(isWin);
+        updateUI();
+    }
+
+    function showFeedbackModal(isWin) {
+        const list = document.getElementById('fbList');
+        const title = document.getElementById('fbTitle');
+        title.innerText = isWin ? "✅ Perfect gedaan!" : "❌ Bijna, maar niet helemaal";
+        title.style.color = isWin ? "var(--correct)" : "var(--wrong)";
+        
+        let html = "";
+        roundColors.forEach((c, i) => {
+            const isSelected = selected.has(i);
+            const isCorrectType = c.type === currentTask;
+            if (isSelected || isCorrectType) {
+                const icon = (isSelected && isCorrectType) ? "✅" : (isSelected ? "❌" : "⚠️ Gemist:");
+                html += `<div class="fb-item"><b>${icon} ${c.name}:</b> ${c.reason}</div>`;
+            }
+        });
+        list.innerHTML = html;
+        document.getElementById('feedbackModal').style.display = 'flex';
+    }
+
+    function closeFeedback() {
+        document.getElementById('feedbackModal').style.display = 'none';
+        if (plants === 5) {
+            document.getElementById('medalModal').style.display = 'flex';
+        } else {
+            initRound();
+        }
+    }
+
+    function closeMedal() {
+        document.getElementById('medalModal').style.display = 'none';
+        plants = 0;
+        updateUI();
+        initRound();
+    }
+
+    function updateUI() {
+        document.getElementById('score').innerText = score;
+        document.getElementById('perc').innerText = rounds === 0 ? "0%" : Math.round((score/rounds)*100) + "%";
+        
+        const plantIcons = ['🌱', '🌿', '🌵', '🌻', '🌲'];
+        for(let i=0; i<5; i++) {
+            const s = document.getElementById(`slot${i}`);
+            if (i < plants) {
+                s.innerText = plantIcons[i];
+                s.style.background = "#dcfce7";
+                s.style.boxShadow = "inset 0 0 5px rgba(0,0,0,0.05)";
+            } else {
+                s.innerText = "";
+                s.style.background = "#f1f5f9";
+                s.style.boxShadow = "none";
+            }
+        }
+    }
+
+    function toggleHelp() {
+        const p = document.getElementById('helpPanel');
+        p.style.display = p.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function resetGame() {
+        score = 0; rounds = 0; plants = 0;
+        updateUI();
+        initRound();
+    }
+
+    function shuffle(a) { return a.sort(() => Math.random() - 0.5); }
+
+    // Start
+    initRound();
+</script>
+
+</body>
+</html>
