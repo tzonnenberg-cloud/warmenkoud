@@ -163,7 +163,7 @@
     <div class="stats-grid">
         <div class="stat-card"><div class="stat-label">Totale Score</div><div id="score" class="stat-value">0</div></div>
         <div class="stat-card">
-            <div class="stat-label">Plantjes voor Medaille (Streak: 5)</div>
+            <div class="stat-label">Plantjes voor Medaille</div>
             <div class="plant-slots">
                 <div class="slot" id="slot0"></div>
                 <div class="slot" id="slot1"></div>
@@ -200,7 +200,7 @@
     <div class="modal-box" style="text-align: center;">
         <div style="font-size: 80px; margin-bottom: 10px;">🏅</div>
         <h2 style="font-size: 24px;">Expert in Kleurtheorie!</h2>
-        <p>Je hebt een streak van 5 behaald en alle plantjes laten groeien. Je bent nu een echte kenner van warme en koude kleuren!</p>
+        <p>Je hebt 5 rondes behaald en alle plantjes laten groeien. Je bent nu een echte kenner van warme en koude kleuren!</p>
         <button class="btn-primary" style="width:100%" onclick="closeMedal()">Nog een keer</button>
     </div>
 </div>
@@ -264,7 +264,6 @@
             };
             card.innerHTML = `
                 <div class="color-swatch" style="background:${c.hex}"></div>
-                <span class="color-name">${c.name}</span>
                 <span class="color-hex">${c.hex}</span>
             `;
             grid.appendChild(card);
